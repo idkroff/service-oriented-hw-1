@@ -1,0 +1,13 @@
+services:
+  user-service:
+    platform: linux/arm64
+    build:
+      context: ./services/user-service
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3

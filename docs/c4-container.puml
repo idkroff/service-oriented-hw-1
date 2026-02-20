@@ -1,0 +1,133 @@
+@startuml C4_Container_Marketplace
+
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam backgroundColor White
+skinparam wrapWidth 160
+skinparam padding 6
+
+skinparam actor {
+    BackgroundColor #08427B
+    FontColor       White
+    BorderColor     #052E56
+}
+skinparam rectangle {
+    BackgroundColor #438DD5
+    FontColor       White
+    BorderColor     #3579B8
+    RoundCorner     8
+}
+skinparam database {
+    BackgroundColor #438DD5
+    FontColor       White
+    BorderColor     #3579B8
+}
+skinparam queue {
+    BackgroundColor #438DD5
+    FontColor       White
+    BorderColor     #3579B8
+}
+skinparam component {
+    BackgroundColor #999999
+    FontColor       White
+    BorderColor     #707070
+    RoundCorner     8
+}
+skinparam node {
+    BackgroundColor #FAFAFA
+    BorderColor     #444444
+    FontColor       #222222
+    FontStyle       bold
+    FontSize        13
+}
+skinparam arrow {
+    Color     #707070
+    FontColor #444444
+    FontSize  9
+}
+
+title Container Diagram — Маркетплейс
+
+' ── Люди ───────────────────────────────────────────────────────
+actor "**Покупатель**\n<size:9>[Person]</size>\n\nПросматривает товары,\nоформляет заказы" as buyer
+actor "**Продавец**\n<size:9>[Person]</size>\n\nУправляет товарным\nкаталогом" as seller
+
+' ── Внешние системы ────────────────────────────────────────────
+component "**Email / SMS**\n<size:9>[External System]</size>\n\nSendGrid / Twilio" as email_system
+component "**Push-уведомления**\n<size:9>[External System]</size>\n\nFirebase FCM" as push_system
+component "**Платёжный шлюз**\n<size:9>[External System]</size>\n\nStripe / ЮKassa" as payment_gw
+
+' ── Граница системы ────────────────────────────────────────────
+node "Маркетплейс" {
+
+    rectangle "**Web Application**\n<size:9>[React SPA / Nginx]</size>\n\nПользовательский интерфейс\nдля покупателей и продавцов." as web_app #1168BD
+
+    rectangle "**API Gateway**\n<size:9>[Nginx]</size>\n\nЕдиная точка входа:\nмаршрутизация, JWT-аутентификация,\nrate limiting" as api_gw #1168BD
+
+    together {
+        rectangle "**User Service**\n<size:9>[Go]</size>\n\nРегистрация, аутентификация,\nпрофили покупателей и продавцов" as user_svc
+        database  "**User DB**\n<size:9>[PostgreSQL]</size>\n\nusers, roles, credentials" as user_db
+    }
+    together {
+        rectangle "**Catalog Service**\n<size:9>[Go]</size>\n\nCRUD товаров для продавцов,\nкатегории, цены, остатки" as catalog_svc
+        database  "**Catalog DB**\n<size:9>[PostgreSQL]</size>\n\nproducts, categories,\nprices, inventory" as catalog_db
+    }
+    together {
+        rectangle "**Feed Service**\n<size:9>[Go]</size>\n\nПерсонализированная лента:\nранжирование по истории покупок" as feed_svc
+        database  "**Feed Store**\n<size:9>[Redis]</size>\n\nКэш предпочтений\nи рекомендаций" as feed_db
+    }
+    together {
+        rectangle "**Order Service**\n<size:9>[Go]</size>\n\nОформление заказов,\nуправление статусами" as order_svc
+        database  "**Order DB**\n<size:9>[PostgreSQL]</size>\n\norders, order_items,\nstatus_history" as order_db
+    }
+    together {
+        rectangle "**Payment Service**\n<size:9>[Go]</size>\n\nИнициация платежей,\nучёт транзакций, возвраты" as payment_svc
+        database  "**Payment DB**\n<size:9>[PostgreSQL]</size>\n\ntransactions, refunds,\nledger" as payment_db
+    }
+
+    rectangle "**Notification Service**\n<size:9>[Go]</size>\n\nОтправка уведомлений о статусах\nзаказов через Email / SMS / Push" as notification_svc
+
+    queue "**Message Broker**\n<size:9>[Apache Kafka]</size>\n\nАсинхронная шина событий.\nТопики: order.* · payment.* · catalog.*" as broker
+}
+
+' ── Люди → Web Application ─────────────────────────────────────
+buyer  --> web_app : HTTPS
+seller --> web_app : HTTPS
+
+' ── Web Application → API Gateway ─────────────────────────────
+web_app --> api_gw : HTTPS / JSON REST
+
+' ── Gateway → Сервисы (sync REST) ─────────────────────────────
+api_gw --> user_svc    : REST/HTTP
+api_gw --> catalog_svc : REST/HTTP
+api_gw --> feed_svc    : REST/HTTP
+api_gw --> order_svc   : REST/HTTP
+api_gw --> payment_svc : REST/HTTP
+
+' ── Сервисы → их БД ───────────────────────────────────────────
+user_svc    --> user_db    : SQL
+catalog_svc --> catalog_db : SQL
+feed_svc    --> feed_db    : Redis
+order_svc   --> order_db   : SQL
+payment_svc --> payment_db : SQL
+
+' ── Синхронные межсервисные вызовы ────────────────────────────
+feed_svc  --> catalog_svc : REST/HTTP\n(запрос товаров для ленты)
+order_svc --> catalog_svc : REST/HTTP\n(проверка наличия товара)
+
+' ── Публикация событий → Kafka ─────────────────────────────────
+order_svc   --> broker : publish\norder.created\norder.status_changed
+payment_svc --> broker : publish\npayment.processed / failed
+catalog_svc --> broker : publish\ncatalog.product_updated
+
+' ── Подписки из Kafka ──────────────────────────────────────────
+broker --> payment_svc      : subscribe\norder.created
+broker --> notification_svc : subscribe\norder.* · payment.*
+broker --> feed_svc         : subscribe\norder.created
+
+' ── Внешние системы ───────────────────────────────────────────
+payment_svc      --> payment_gw   : REST/HTTPS
+notification_svc --> email_system : SMTP / HTTPS
+notification_svc --> push_system  : HTTPS
+
+@enduml
