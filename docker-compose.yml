@@ -11,3 +11,38 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+
+  postgres:
+    image: postgres:16-alpine
+    platform: linux/arm64
+    environment:
+      POSTGRES_DB: marketplace
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  marketplace-api:
+    platform: linux/arm64
+    build:
+      context: ./services/marketplace-api
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/marketplace?sslmode=disable
+      JWT_SECRET: dev-secret-key
+      ORDER_RATE_LIMIT_MINUTES: "1"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
