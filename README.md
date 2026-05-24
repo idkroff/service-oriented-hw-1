@@ -3,7 +3,7 @@
 ## Запуск
 
 ```bash
-docker compose up --build
+docker-compose up --build
 curl http://localhost:8000/health
 # {"status":"ok","service":"user-service"}
 ```

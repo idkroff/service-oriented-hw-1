@@ -3,7 +3,8 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen \
+RUN mkdir -p internal/generated && \
+    go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen \
     --config=api/oapi-codegen.yaml api/openapi.yaml && \
     go build -o server ./cmd/ && \
     go build -o goose github.com/pressly/goose/v3/cmd/goose
