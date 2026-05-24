@@ -1,0 +1,28 @@
+# Override для integration / e2e / load-тестов.
+# Применять вместе с docker-compose.yml:
+#   docker compose -f docker-compose.yml -f docker-compose.test.yml up -d --wait
+
+services:
+  marketplace-api:
+    environment:
+      ORDER_RATE_LIMIT_MINUTES: "0"
+      USER_SERVICE_URL: http://user-service:8000
+
+  user-service:
+    environment:
+      ACCESS_TOKEN_TTL_MINUTES: "60"
+
+  k6:
+    image: grafana/k6:0.54.0
+    profiles: ["loadtest"]
+    volumes:
+      - ./loadtests:/scripts
+    environment:
+      MARKETPLACE_URL: http://marketplace-api:8080
+      USER_SERVICE_URL: http://user-service:8000
+    depends_on:
+      marketplace-api:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    entrypoint: ["k6"]

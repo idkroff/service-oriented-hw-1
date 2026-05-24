@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-05-24T14:42:42Z",
+  "metrics": {
+    "error_rate": "0",
+    "p95_seconds": "0.004930059523809523",
+    "auth_success_rate": "1"
+  },
+  "thresholds": {
+    "error_rate_max": 0.01,
+    "p95_seconds_max": 0.5,
+    "auth_success_rate_min": 0.95
+  },
+  "verdict": "PASS"
+}

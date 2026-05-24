@@ -12,20 +12,17 @@ import (
 )
 
 type Handler struct {
-	authUC    *usecases.AuthUseCase
 	productUC *usecases.ProductUseCase
 	orderUC   *usecases.OrderUseCase
 	promoUC   *usecases.PromoUseCase
 }
 
 func New(
-	authUC *usecases.AuthUseCase,
 	productUC *usecases.ProductUseCase,
 	orderUC *usecases.OrderUseCase,
 	promoUC *usecases.PromoUseCase,
 ) *Handler {
 	return &Handler{
-		authUC:    authUC,
 		productUC: productUC,
 		orderUC:   orderUC,
 		promoUC:   promoUC,
@@ -108,10 +105,8 @@ func mapDomainError(err error) (string, string) {
 		return "TOKEN_INVALID", "invalid token"
 	case domain.ErrTokenExpired:
 		return "TOKEN_EXPIRED", "token expired"
-	case domain.ErrEmailTaken:
-		return "EMAIL_TAKEN", "email already registered"
-	case domain.ErrInvalidCredentials:
-		return "INVALID_CREDENTIALS", "invalid email or password"
+	case domain.ErrAuthUnavailable:
+		return "AUTH_UNAVAILABLE", "auth service unavailable"
 	case domain.ErrProductInactive:
 		return "PRODUCT_INACTIVE", "product is not available"
 	case domain.ErrInsufficientStock:

@@ -11,9 +11,11 @@ import (
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/go-chi/chi/v5"
 	nethttpmiddleware "github.com/oapi-codegen/nethttp-middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	appdb "marketplace-api/internal/db"
+	"marketplace-api/internal/clients"
 	"marketplace-api/internal/config"
+	appdb "marketplace-api/internal/db"
 	"marketplace-api/internal/generated"
 	"marketplace-api/internal/handlers"
 	"marketplace-api/internal/middleware"
@@ -31,18 +33,17 @@ func main() {
 	}
 	defer pool.Close()
 
-	userRepo := repository.NewUserRepo(pool)
-	rtRepo := repository.NewRefreshTokenRepo(pool)
 	productRepo := repository.NewProductRepo(pool)
 	orderRepo := repository.NewOrderRepo(pool)
 	promoRepo := repository.NewPromoRepo(pool)
 
-	authUC := usecases.NewAuthUseCase(userRepo, rtRepo, cfg.JWTSecret, cfg.AccessTokenTTLMinutes, cfg.RefreshTokenTTLDays)
 	productUC := usecases.NewProductUseCase(productRepo)
 	orderUC := usecases.NewOrderUseCase(orderRepo, cfg.OrderRateLimitMinutes)
 	promoUC := usecases.NewPromoUseCase(promoRepo)
 
-	h := handlers.New(authUC, productUC, orderUC, promoUC)
+	userClient := clients.NewUserClient(cfg.UserServiceURL)
+
+	h := handlers.New(productUC, orderUC, promoUC)
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
@@ -79,8 +80,11 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logging(logger))
+	r.Use(middleware.Metrics())
 
-	// /health не в OpenAPI-спеке, регистрируем до группы с валидацией
+	// /metrics и /health регистрируем ДО группы с OapiRequestValidator —
+	// они вне OpenAPI-спеки и не должны проходить валидацию (иначе 4xx).
+	r.Handle("/metrics", promhttp.Handler())
 	r.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok", "service": "marketplace-api"})
@@ -89,21 +93,14 @@ func main() {
 	r.Group(func(r chi.Router) {
 		r.Use(validationMiddleware)
 
-		// no auth required
-		r.Post("/auth/login", wrapper.Login)
-		r.Post("/auth/refresh", wrapper.RefreshToken)
-		r.Post("/auth/register", wrapper.Register)
-
-		// optional auth — personalization without enforcement
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.AuthOptional(authUC))
+			r.Use(middleware.AuthOptional(userClient))
 			r.Get("/products", wrapper.ListProducts)
 			r.Get("/products/{id}", wrapper.GetProduct)
 		})
 
-		// auth required
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.Auth(authUC))
+			r.Use(middleware.Auth(userClient))
 			r.Post("/products", wrapper.CreateProduct)
 			r.Put("/products/{id}", wrapper.UpdateProduct)
 			r.Delete("/products/{id}", wrapper.DeleteProduct)

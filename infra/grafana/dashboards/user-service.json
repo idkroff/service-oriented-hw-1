@@ -1,0 +1,105 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "uid": "user-service",
+  "title": "user-service",
+  "tags": ["service", "user-service"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "time": {"from": "now-15m", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Latency p50 / p95 / p99 (по эндпоинту)",
+      "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "histogram_quantile(0.50, sum by (le, endpoint) (rate(http_request_duration_seconds_bucket{job=\"user-service\"}[1m])))", "legendFormat": "p50 {{endpoint}}"},
+        {"refId": "B", "expr": "histogram_quantile(0.95, sum by (le, endpoint) (rate(http_request_duration_seconds_bucket{job=\"user-service\"}[1m])))", "legendFormat": "p95 {{endpoint}}"},
+        {"refId": "C", "expr": "histogram_quantile(0.99, sum by (le, endpoint) (rate(http_request_duration_seconds_bucket{job=\"user-service\"}[1m])))", "legendFormat": "p99 {{endpoint}}"}
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "s", "custom": {"drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 5}},
+        "overrides": []
+      },
+      "options": {"legend": {"showLegend": true, "displayMode": "table", "placement": "right"}}
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Error rate (5m)",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sum(rate(http_request_errors_total{job=\"user-service\"}[5m])) / (sum(rate(http_requests_total{job=\"user-service\"}[5m])) > 0) or vector(0)"}
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 3,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 0.01},
+              {"color": "red", "value": 0.05}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {"colorMode": "background", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "RPS (1m)",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sum(rate(http_requests_total{job=\"user-service\"}[1m]))"}
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "reqps", "decimals": 2},
+        "overrides": []
+      },
+      "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"]}}
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "RPS по эндпоинту",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sum by (endpoint) (rate(http_requests_total{job=\"user-service\"}[1m]))", "legendFormat": "{{endpoint}}"}
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "reqps", "custom": {"drawStyle": "line", "stacking": {"mode": "normal"}}},
+        "overrides": []
+      },
+      "options": {"legend": {"showLegend": true, "displayMode": "table", "placement": "right"}}
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Распределение статусов",
+      "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sum by (status) (rate(http_requests_total{job=\"user-service\"}[5m]))", "legendFormat": "{{status}}"}
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "reqps", "custom": {"drawStyle": "bars", "stacking": {"mode": "normal"}, "fillOpacity": 80}},
+        "overrides": []
+      }
+    }
+  ]
+}

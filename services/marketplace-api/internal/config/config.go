@@ -6,20 +6,16 @@ import (
 )
 
 type Config struct {
-	DatabaseURL            string
-	JWTSecret              string
-	AccessTokenTTLMinutes  int
-	RefreshTokenTTLDays    int
-	OrderRateLimitMinutes  int
-	Port                   string
+	DatabaseURL           string
+	UserServiceURL        string
+	OrderRateLimitMinutes int
+	Port                  string
 }
 
 func Load() Config {
 	return Config{
 		DatabaseURL:           getEnv("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/marketplace?sslmode=disable"),
-		JWTSecret:             getEnv("JWT_SECRET", "dev-secret-key"),
-		AccessTokenTTLMinutes: getEnvInt("ACCESS_TOKEN_TTL_MINUTES", 30),
-		RefreshTokenTTLDays:   getEnvInt("REFRESH_TOKEN_TTL_DAYS", 7),
+		UserServiceURL:        getEnv("USER_SERVICE_URL", "http://localhost:8000"),
 		OrderRateLimitMinutes: getEnvInt("ORDER_RATE_LIMIT_MINUTES", 1),
 		Port:                  getEnv("PORT", "8080"),
 	}

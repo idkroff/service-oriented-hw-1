@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 
-	"marketplace-api/internal/domain"
+	"user-service/internal/domain"
 )
 
 type UserRepo interface {
@@ -26,11 +26,12 @@ type RefreshTokenRepo interface {
 }
 
 type AuthUseCase struct {
-	userRepo    UserRepo
-	rtRepo      RefreshTokenRepo
-	jwtSecret   []byte
-	accessTTL   time.Duration
-	refreshTTL  time.Duration
+	userRepo   UserRepo
+	rtRepo     RefreshTokenRepo
+	jwtSecret  []byte
+	accessTTL  time.Duration
+	refreshTTL time.Duration
+	bcryptCost int
 }
 
 func NewAuthUseCase(userRepo UserRepo, rtRepo RefreshTokenRepo, jwtSecret string, accessTTLMin, refreshTTLDays int) *AuthUseCase {
@@ -40,20 +41,29 @@ func NewAuthUseCase(userRepo UserRepo, rtRepo RefreshTokenRepo, jwtSecret string
 		jwtSecret:  []byte(jwtSecret),
 		accessTTL:  time.Duration(accessTTLMin) * time.Minute,
 		refreshTTL: time.Duration(refreshTTLDays) * 24 * time.Hour,
+		bcryptCost: bcrypt.DefaultCost,
 	}
 }
 
+// SetBcryptCost позволяет тестам ускорить хеширование.
+func (uc *AuthUseCase) SetBcryptCost(cost int) {
+	uc.bcryptCost = cost
+}
+
 type TokenPair struct {
-	AccessToken  string
-	RefreshToken string
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 func (uc *AuthUseCase) Register(ctx context.Context, email, password string, role domain.Role) (*TokenPair, error) {
+	if email == "" || password == "" {
+		return nil, domain.ErrInvalidInput
+	}
 	if _, err := uc.userRepo.GetByEmail(ctx, email); err == nil {
 		return nil, domain.ErrEmailTaken
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), uc.bcryptCost)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +90,7 @@ func (uc *AuthUseCase) Login(ctx context.Context, email, password string) (*Toke
 }
 
 func (uc *AuthUseCase) Refresh(ctx context.Context, rawToken string) (*TokenPair, error) {
-	hash := tokenHash(rawToken)
+	hash := TokenHash(rawToken)
 	rt, err := uc.rtRepo.GetByHash(ctx, hash)
 	if err != nil {
 		return nil, domain.ErrTokenInvalid
@@ -144,7 +154,7 @@ func (uc *AuthUseCase) issueTokens(ctx context.Context, user *domain.User) (*Tok
 	}
 
 	rawRefresh := fmt.Sprintf("%s.%d.%s", user.ID, now.UnixNano(), uuid.New())
-	hash := tokenHash(rawRefresh)
+	hash := TokenHash(rawRefresh)
 	expiresAt := now.Add(uc.refreshTTL)
 
 	if err := uc.rtRepo.Create(ctx, user.ID, hash, expiresAt); err != nil {
@@ -154,7 +164,7 @@ func (uc *AuthUseCase) issueTokens(ctx context.Context, user *domain.User) (*Tok
 	return &TokenPair{AccessToken: accessToken, RefreshToken: rawRefresh}, nil
 }
 
-func tokenHash(raw string) string {
+func TokenHash(raw string) string {
 	h := sha256.Sum256([]byte(raw))
 	return fmt.Sprintf("%x", h)
 }

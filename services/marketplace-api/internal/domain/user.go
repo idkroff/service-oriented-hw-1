@@ -1,11 +1,8 @@
 package domain
 
-import (
-	"time"
+import "github.com/google/uuid"
 
-	"github.com/google/uuid"
-)
-
+// Role — роль пользователя, проксируется из user-service в JWT-claims.
 type Role string
 
 const (
@@ -14,24 +11,8 @@ const (
 	RoleAdmin  Role = "ADMIN"
 )
 
-type User struct {
-	ID           uuid.UUID
-	Email        string
-	PasswordHash string
-	Role         Role
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-}
-
+// UserClaims — то, что user-service возвращает по /auth/validate.
 type UserClaims struct {
-	UserID uuid.UUID
-	Role   Role
-}
-
-type RefreshToken struct {
-	ID        uuid.UUID
-	UserID    uuid.UUID
-	TokenHash string
-	ExpiresAt time.Time
-	CreatedAt time.Time
+	UserID uuid.UUID `json:"user_id"`
+	Role   Role      `json:"role"`
 }

@@ -1,0 +1,333 @@
+{
+    "root_group": {
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {
+                "get product 200": {
+                    "passes": 577,
+                    "fails": 0,
+                    "name": "get product 200",
+                    "path": "::get product 200",
+                    "id": "3148c4639c01cb27fe88b1b3ee624001"
+                },
+                "list products 200": {
+                    "name": "list products 200",
+                    "path": "::list products 200",
+                    "id": "534598a93231dc405e12ad4548b1638d",
+                    "passes": 2074,
+                    "fails": 0
+                },
+                "create order 201": {
+                    "passes": 309,
+                    "fails": 0,
+                    "name": "create order 201",
+                    "path": "::create order 201",
+                    "id": "8cba04e3f5af90e19b46e96583e80215"
+                },
+                "cancel order 200": {
+                    "name": "cancel order 200",
+                    "path": "::cancel order 200",
+                    "id": "eb124c3092c9b8522621b9eca4565f5b",
+                    "passes": 309,
+                    "fails": 0
+                }
+            },
+        "name": ""
+    },
+    "metrics": {
+        "http_req_connecting": {
+            "p(95)": 0,
+            "avg": 0.0005293652622006668,
+            "min": 0,
+            "med": 0,
+            "max": 0.447521,
+            "p(90)": 0
+        },
+        "data_received": {
+            "count": 13170510,
+            "rate": 211128.34970279486
+        },
+        "iterations": {
+            "count": 2960,
+            "rate": 47.44994044424041
+        },
+        "http_req_waiting": {
+            "avg": 2.36685513034253,
+            "min": 0.118338,
+            "med": 1.031714,
+            "max": 127.125687,
+            "p(90)": 3.8778004,
+            "p(95)": 5.3844653
+        },
+        "checks": {
+            "passes": 3269,
+            "fails": 0,
+            "thresholds": {
+                "rate>0.99": false
+            },
+            "value": 1
+        },
+        "http_req_sending": {
+            "min": 0.001791,
+            "med": 0.015125,
+            "max": 2.24227,
+            "p(90)": 0.04229380000000001,
+            "p(95)": 0.06700299999999983,
+            "avg": 0.027398985147014193
+        },
+        "vus_max": {
+            "max": 10,
+            "value": 10,
+            "min": 10
+        },
+        "http_req_duration": {
+            "max": 127.17794,
+            "p(90)": 4.1463196,
+            "p(95)": 5.6700414,
+            "avg": 2.523219726583812,
+            "min": 0.132881,
+            "med": 1.222849,
+            "thresholds": {
+                "p(95)<500": false
+            }
+        },
+        "iteration_duration": {
+            "max": 222.737527,
+            "p(90)": 206.3226028,
+            "p(95)": 208.74236285,
+            "avg": 202.9599794469593,
+            "min": 200.329935,
+            "med": 202.0403945
+        },
+        "http_req_duration{expected_response:true}": {
+            "avg": 2.523219726583812,
+            "min": 0.132881,
+            "med": 1.222849,
+            "max": 127.17794,
+            "p(90)": 4.1463196,
+            "p(95)": 5.6700414
+        },
+        "http_req_tls_handshaking": {
+            "avg": 0,
+            "min": 0,
+            "med": 0,
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0
+        },
+        "http_reqs": {
+            "count": 3299,
+            "rate": 52.884241055928754
+        },
+        "data_sent": {
+            "count": 549400,
+            "rate": 8807.093675697866
+        },
+        "http_req_receiving": {
+            "avg": 0.12896561109427104,
+            "min": 0.004917,
+            "med": 0.062045,
+            "max": 5.271793,
+            "p(90)": 0.2674538,
+            "p(95)": 0.43028339999999976
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 3299,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "http_req_blocked": {
+            "p(95)": 0.01409649999999998,
+            "avg": 0.009365344649893874,
+            "min": 0.000708,
+            "med": 0.004375,
+            "max": 3.125318,
+            "p(90)": 0.0099582
+        },
+        "vus": {
+            "min": 0,
+            "max": 10,
+            "value": 10
+        }
+    },
+    "setup_data": {
+        "products": [
+            {
+                "updated_at": "2026-05-24T14:41:19.563776Z",
+                "category": "loadtest",
+                "created_at": "2026-05-24T14:41:19.563776Z",
+                "description": null,
+                "price": 100,
+                "status": "ACTIVE",
+                "stock": 10000,
+                "id": "34c7fe14-4d55-45a8-9e5e-c7bb4dfd97b7",
+                "name": "LoadProduct-0",
+                "seller_id": "cfda0891-8a30-490e-8bbe-4af7573e52f5"
+            },
+            {
+                "updated_at": "2026-05-24T14:41:19.803832Z",
+                "category": "loadtest",
+                "created_at": "2026-05-24T14:41:19.803832Z",
+                "id": "0b505077-3a86-4e7d-a5f3-7b9d11b995a8",
+                "name": "LoadProduct-1",
+                "price": 100,
+                "stock": 10000,
+                "description": null,
+                "seller_id": "387d2077-cc03-4c05-ae21-898babfd7c70",
+                "status": "ACTIVE"
+            },
+            {
+                "category": "loadtest",
+                "created_at": "2026-05-24T14:41:20.026266Z",
+                "name": "LoadProduct-2",
+                "stock": 10000,
+                "status": "ACTIVE",
+                "updated_at": "2026-05-24T14:41:20.026266Z",
+                "description": null,
+                "id": "7faf2bc4-9b8b-415e-a707-9d794453d0ad",
+                "price": 100,
+                "seller_id": "26db5052-26d6-4f47-92c3-464060f3efb3"
+            },
+            {
+                "updated_at": "2026-05-24T14:41:20.255849Z",
+                "category": "loadtest",
+                "created_at": "2026-05-24T14:41:20.255849Z",
+                "id": "58a96756-8964-443b-82ff-a91e5c3bdee5",
+                "seller_id": "04fd78b0-0a41-42a4-9e4a-66d8ce73ea19",
+                "status": "ACTIVE",
+                "description": null,
+                "name": "LoadProduct-3",
+                "price": 100,
+                "stock": 10000
+            },
+            {
+                "description": null,
+                "id": "ce0779ac-a271-4bc2-bdaa-e4291a939bf4",
+                "name": "LoadProduct-4",
+                "status": "ACTIVE",
+                "stock": 10000,
+                "category": "loadtest",
+                "created_at": "2026-05-24T14:41:20.464845Z",
+                "price": 100,
+                "seller_id": "c7b84a95-5e86-405c-8aac-173a45829535",
+                "updated_at": "2026-05-24T14:41:20.464845Z"
+            },
+            {
+                "id": "4bcfe73f-f254-4e23-b41c-5f09f3220966",
+                "name": "LoadProduct-5",
+                "status": "ACTIVE",
+                "category": "loadtest",
+                "created_at": "2026-05-24T14:41:20.687678Z",
+                "description": null,
+                "updated_at": "2026-05-24T14:41:20.687678Z",
+                "price": 100,
+                "seller_id": "572c6514-e9f6-4481-9548-73ce0fcbf60c",
+                "stock": 10000
+            },
+            {
+                "category": "loadtest",
+                "created_at": "2026-05-24T14:41:20.918463Z",
+                "description": null,
+                "name": "LoadProduct-6",
+                "seller_id": "58a487c0-2830-47d4-a8bf-14542e7a3751",
+                "updated_at": "2026-05-24T14:41:20.918463Z",
+                "id": "4ce7e8c6-8311-4837-96aa-c60d182bbd3c",
+                "price": 100,
+                "status": "ACTIVE",
+                "stock": 10000
+            },
+            {
+                "category": "loadtest",
+                "created_at": "2026-05-24T14:41:21.127616Z",
+                "id": "f6ecbd14-367c-46cd-ba4a-1c05c19fbd07",
+                "price": 100,
+                "status": "ACTIVE",
+                "description": null,
+                "name": "LoadProduct-7",
+                "seller_id": "6ce608a4-13ab-473d-b9fe-3588b2cc881e",
+                "stock": 10000,
+                "updated_at": "2026-05-24T14:41:21.127616Z"
+            },
+            {
+                "stock": 10000,
+                "category": "loadtest",
+                "id": "4114cae2-75fb-40ab-a5df-7c916ce073a0",
+                "name": "LoadProduct-8",
+                "price": 100,
+                "seller_id": "cdba2b08-cb57-4477-b056-b52c5b313c1a",
+                "created_at": "2026-05-24T14:41:21.38027Z",
+                "description": null,
+                "status": "ACTIVE",
+                "updated_at": "2026-05-24T14:41:21.38027Z"
+            },
+            {
+                "category": "loadtest",
+                "created_at": "2026-05-24T14:41:21.615313Z",
+                "name": "LoadProduct-9",
+                "price": 100,
+                "seller_id": "9db8d529-4daf-40c0-9152-622e9f91aafd",
+                "status": "ACTIVE",
+                "stock": 10000,
+                "updated_at": "2026-05-24T14:41:21.615313Z",
+                "description": null,
+                "id": "bfe4e4c3-b554-4be9-8084-0e742b13d3dc"
+            }
+        ],
+        "users": [
+            {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzk2MzcyNzksImlhdCI6MTc3OTYzMzY3OSwicm9sZSI6IlVTRVIiLCJzdWIiOiIxMjRmNjVkMS1jYTA0LTRiYTktOTk5ZS03ZWJjMjU4YTVkODAifQ.x5lDr_GP12Ft-zizifSrM1jQfTljCtG3rrc4sYVXVbI",
+                "refresh_token": "124f65d1-ca04-4ba9-999e-7ebc258a5d80.1779633679679875093.5dae2500-98fa-4380-b9f7-953b015da174",
+                "token_type": "Bearer"
+            },
+            {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzk2MzcyNzksImlhdCI6MTc3OTYzMzY3OSwicm9sZSI6IlVTRVIiLCJzdWIiOiIwNTVhN2MxYi0yZGQ3LTQwYmQtOTM0ZC1jMjJlN2FkODg4YzAifQ.susmImaPo4uYh-KCkDuHVemSZ7WtmzWKEp0Ec8CrnQc",
+                "refresh_token": "055a7c1b-2dd7-40bd-934d-c22e7ad888c0.1779633679907627295.00632919-951c-4f40-93c9-d529944c84b0",
+                "token_type": "Bearer"
+            },
+            {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzk2MzcyODAsImlhdCI6MTc3OTYzMzY4MCwicm9sZSI6IlVTRVIiLCJzdWIiOiJhMDBkZWNhZi0wMGU4LTQ3ZWItOTkyMC04MjE5YWUyMDc3ODgifQ.IJ9Ktsf0Q_-I-OwV3PLqOZLTFaMLOmKAmNKqPFJHfXc",
+                "refresh_token": "a00decaf-00e8-47eb-9920-8219ae207788.1779633680138956079.bde5ae35-2de7-4a98-abc8-683687cd93db",
+                "token_type": "Bearer"
+            },
+            {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzk2MzcyODAsImlhdCI6MTc3OTYzMzY4MCwicm9sZSI6IlVTRVIiLCJzdWIiOiI4MjRlY2I0Ni01NzRjLTRmYWUtOGQ4Ni04ZTUzOTA3YjEzZTAifQ.ERBzHVb8__bpWw5K12NuQ-o-OzrCLDO2RWt3CcuNx6Q",
+                "refresh_token": "824ecb46-574c-4fae-8d86-8e53907b13e0.1779633680354945366.9181d89d-14ba-4625-bf30-dd14d9191cc8",
+                "token_type": "Bearer"
+            },
+            {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzk2MzcyODAsImlhdCI6MTc3OTYzMzY4MCwicm9sZSI6IlVTRVIiLCJzdWIiOiIxODFkZmM2Yi05Zjc1LTQ4ZWQtYTVlYS1hMzE4ZmE0OGQ1N2EifQ.E16-j-zcKiptpIeLq4H37CzIH3_miDzC6Syvzt5KQw8",
+                "refresh_token": "181dfc6b-9f75-48ed-a5ea-a318fa48d57a.1779633680560094795.45dd1c53-9edc-4728-b26e-ca2ab17069de",
+                "token_type": "Bearer"
+            },
+            {
+                "refresh_token": "fbe35999-9dcb-46ef-ab21-bd420ade42da.1779633680803494366.a3dc692e-181e-49a5-a757-0641f2bc12bb",
+                "token_type": "Bearer",
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzk2MzcyODAsImlhdCI6MTc3OTYzMzY4MCwicm9sZSI6IlVTRVIiLCJzdWIiOiJmYmUzNTk5OS05ZGNiLTQ2ZWYtYWIyMS1iZDQyMGFkZTQyZGEifQ.E3JMMhriSIz-027MbSS3rPNpNwHNdv4z-wDGONjvOvE"
+            },
+            {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzk2MzcyODEsImlhdCI6MTc3OTYzMzY4MSwicm9sZSI6IlVTRVIiLCJzdWIiOiJmNzRjYjU4ZS1mOTE0LTQzMTQtOWYzYi04YTJhMTU4MTQwZjcifQ.YwENrUrENG1YKFafjkRV5fGHSBRrYBixu4HMssolHkc",
+                "refresh_token": "f74cb58e-f914-4314-9f3b-8a2a158140f7.1779633681010665684.ac1939ce-23cf-481f-b26e-0021eebffe4b",
+                "token_type": "Bearer"
+            },
+            {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzk2MzcyODEsImlhdCI6MTc3OTYzMzY4MSwicm9sZSI6IlVTRVIiLCJzdWIiOiI3MTU4NGRmYy1kZTc2LTQ3NWUtYjU4MS01NWVlZjQ0NjgxMzYifQ.khLhQLK883hqWMPS-FRTxdK-QGz3vOnkBOawsjcjsyI",
+                "refresh_token": "71584dfc-de76-475e-b581-55eef4468136.1779633681254521598.4a942fbd-143a-40af-999d-a5a72259dc43",
+                "token_type": "Bearer"
+            },
+            {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzk2MzcyODEsImlhdCI6MTc3OTYzMzY4MSwicm9sZSI6IlVTRVIiLCJzdWIiOiI0MjIyYTI1ZS1hNTAxLTQzYzMtYTM3ZS05OTgwZDgwNmQwYmUifQ.-O4QmscVKOCWEiqDsTf9SUMHYylvyEGvKv0uCqF4A8M",
+                "refresh_token": "4222a25e-a501-43c3-a37e-9980d806d0be.1779633681483542336.1fbc2b04-6298-4a87-ba64-c2919ecf0346",
+                "token_type": "Bearer"
+            },
+            {
+                "token_type": "Bearer",
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzk2MzcyODEsImlhdCI6MTc3OTYzMzY4MSwicm9sZSI6IlVTRVIiLCJzdWIiOiI5ODg4MTU0My1mZjBlLTQ5MjktYmI4ZC1jMWQ2MjkxMjJiMTUifQ.2dF-7Kx9qP4EsptBCbadAzHUwVxtfci4ahp2cc4qBRU",
+                "refresh_token": "98881543-ff0e-4929-bb8d-c1d629122b15.1779633681702265619.59a27af8-196e-47c1-8765-0af9635b166a"
+            }
+        ]
+    }
+}

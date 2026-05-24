@@ -1,0 +1,173 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint-build:
+    name: Lint & Build (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [marketplace-api, user-service]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          cache-dependency-path: services/${{ matrix.service }}/go.sum
+      - name: go vet
+        working-directory: services/${{ matrix.service }}
+        run: go vet ./...
+      - name: go build
+        working-directory: services/${{ matrix.service }}
+        run: go build ./...
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          working-directory: services/${{ matrix.service }}
+          version: latest
+          args: --timeout=5m
+
+  unit-tests:
+    name: Unit Tests (${{ matrix.service }})
+    needs: lint-build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [marketplace-api, user-service]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          cache-dependency-path: services/${{ matrix.service }}/go.sum
+      - name: go test
+        working-directory: services/${{ matrix.service }}
+        run: go test ./... -coverprofile=cov.out -count=1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-${{ matrix.service }}
+          path: services/${{ matrix.service }}/cov.out
+
+  integration-tests:
+    name: Integration Tests
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          cache-dependency-path: services/marketplace-api/go.sum
+      - name: Compose up
+        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up -d --wait --wait-timeout 120 marketplace-api user-service postgres
+      - name: Run integration tests
+        working-directory: services/marketplace-api
+        run: go test -tags=integration -count=1 -v ./test/integration/...
+      - name: Compose logs
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.test.yml logs > compose-logs-integration.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-logs
+          path: compose-logs-integration.txt
+      - name: Compose down
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.test.yml down -v
+
+  e2e-tests:
+    name: E2E Tests
+    needs: integration-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          cache-dependency-path: services/marketplace-api/go.sum
+      - name: Compose up
+        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up -d --wait --wait-timeout 120
+      - name: Run e2e tests
+        working-directory: services/marketplace-api
+        run: go test -tags=e2e -count=1 -v ./test/e2e/...
+      - name: Compose logs
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.test.yml logs > compose-logs-e2e.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-logs
+          path: compose-logs-e2e.txt
+      - name: Compose down
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.test.yml down -v
+
+  load-tests:
+    name: Load Tests (k6)
+    needs: e2e-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compose up
+        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up -d --wait --wait-timeout 120
+      - name: k6 run
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.test.yml --profile loadtest run --rm --no-deps \
+            -v "$PWD/loadtests:/scripts" \
+            k6 run /scripts/scenarios.js --summary-export=/scripts/summary.json | tee loadtests/k6-stdout.log
+      - name: Health stays up under load
+        if: always()
+        run: |
+          curl -fsS http://localhost:8080/health
+          curl -fsS http://localhost:8000/health
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k6-results
+          path: |
+            loadtests/summary.json
+            loadtests/k6-stdout.log
+      - name: Compose logs
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.test.yml logs > compose-logs-load.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: load-compose-logs
+          path: compose-logs-load.txt
+      - name: Compose down
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.test.yml down -v
+
+  metrics-check:
+    name: E2E + Load + SLI Check
+    needs: e2e-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compose up full stack
+        run: docker compose -f docker-compose.yml -f docker-compose.test.yml up -d --wait --wait-timeout 180
+      - name: Generate load + collect metrics + verify SLI
+        run: bash scripts/check-sli.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sli-results
+          path: scripts/sli-output.json
+      - name: Compose logs
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.test.yml logs > compose-logs-sli.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sli-compose-logs
+          path: compose-logs-sli.txt
+      - name: Compose down
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.test.yml down -v

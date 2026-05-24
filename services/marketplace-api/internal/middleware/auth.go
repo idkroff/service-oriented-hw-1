@@ -13,6 +13,8 @@ type contextKey string
 
 const CtxKeyUser contextKey = "user"
 
+// TokenVerifier — интерфейс валидации access-токена.
+// Реализуется HTTP-клиентом к user-service (`internal/clients/userclient.go`).
 type TokenVerifier interface {
 	VerifyAccessToken(token string) (*domain.UserClaims, error)
 }
@@ -22,7 +24,8 @@ func Auth(verifier TokenVerifier) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			claims, err := parseToken(verifier, r.Header.Get("Authorization"))
 			if err != nil {
-				writeAuthError(w, authErrCode(err), err.Error(), http.StatusUnauthorized)
+				code, status := authErrInfo(err)
+				writeAuthError(w, code, err.Error(), status)
 				return
 			}
 			next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), CtxKeyUser, claims)))
@@ -49,14 +52,16 @@ func parseToken(verifier TokenVerifier, authHeader string) (*domain.UserClaims, 
 	return verifier.VerifyAccessToken(strings.TrimPrefix(authHeader, "Bearer "))
 }
 
-func authErrCode(err error) string {
+func authErrInfo(err error) (string, int) {
 	switch err {
 	case domain.ErrTokenExpired:
-		return "TOKEN_EXPIRED"
+		return "TOKEN_EXPIRED", http.StatusUnauthorized
 	case domain.ErrUnauthorized:
-		return "TOKEN_MISSING"
+		return "TOKEN_MISSING", http.StatusUnauthorized
+	case domain.ErrAuthUnavailable:
+		return "AUTH_UNAVAILABLE", http.StatusServiceUnavailable
 	default:
-		return "TOKEN_INVALID"
+		return "TOKEN_INVALID", http.StatusUnauthorized
 	}
 }
 

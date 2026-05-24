@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"marketplace-api/internal/domain"
+	"user-service/internal/domain"
 )
 
 type UserRepo struct {
