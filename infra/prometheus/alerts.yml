@@ -1,0 +1,41 @@
+groups:
+  - name: marketplace
+    interval: 30s
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum by (job) (rate(http_request_errors_total[5m]))
+            /
+            sum by (job) (rate(http_requests_total[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          sli: availability
+        annotations:
+          summary: "Error rate > 5% on {{ $labels.job }}"
+          description: "Сервис {{ $labels.job }} возвращает > 5% ошибок в течение 5 минут."
+
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le, job) (rate(http_request_duration_seconds_bucket[5m]))
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+          sli: latency
+        annotations:
+          summary: "p95 latency > 1s on {{ $labels.job }}"
+          description: "p95 запросов {{ $labels.job }} превысил 1 секунду в течение 5 минут."
+
+      - alert: ServiceDown
+        expr: up{job=~"marketplace-api|user-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          sli: availability
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "Prometheus не может собрать метрики с {{ $labels.job }} более 1 минуты."

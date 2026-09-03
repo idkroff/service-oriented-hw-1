@@ -2,82 +2,18 @@ openapi: "3.0.3"
 info:
   title: Marketplace API
   version: "1.0.0"
-  description: REST API для маркетплейса - товары, заказы, авторизация
+  description: |
+    REST API маркетплейса (товары, заказы, промокоды).
+    Аутентификация вынесена в user-service: /auth/register, /auth/login, /auth/refresh
+    обслуживаются им напрямую. Marketplace-api валидирует JWT через POST /auth/validate
+    в user-service.
 
 tags:
-  - name: auth
   - name: products
   - name: orders
   - name: promo-codes
 
 paths:
-  /auth/register:
-    post:
-      tags: [auth]
-      operationId: Register
-      summary: Регистрация пользователя
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthRegisterRequest'
-      responses:
-        '201':
-          description: Успешная регистрация
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthResponse'
-        '400':
-          $ref: '#/components/responses/Error'
-        '409':
-          $ref: '#/components/responses/Error'
-
-  /auth/login:
-    post:
-      tags: [auth]
-      operationId: Login
-      summary: Вход в систему
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthLoginRequest'
-      responses:
-        '200':
-          description: Успешный вход
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthResponse'
-        '400':
-          $ref: '#/components/responses/Error'
-        '401':
-          $ref: '#/components/responses/Error'
-
-  /auth/refresh:
-    post:
-      tags: [auth]
-      operationId: RefreshToken
-      summary: Обновление токена
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RefreshTokenRequest'
-      responses:
-        '200':
-          description: Новая пара токенов
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthResponse'
-        '401':
-          $ref: '#/components/responses/Error'
-
   /products:
     get:
       tags: [products]
@@ -384,50 +320,6 @@ components:
         details:
           type: object
           additionalProperties: true
-
-    AuthRegisterRequest:
-      type: object
-      required: [email, password]
-      properties:
-        email:
-          type: string
-          format: email
-          maxLength: 255
-        password:
-          type: string
-          minLength: 6
-          maxLength: 72
-        role:
-          $ref: '#/components/schemas/Role'
-
-    AuthLoginRequest:
-      type: object
-      required: [email, password]
-      properties:
-        email:
-          type: string
-          format: email
-        password:
-          type: string
-
-    RefreshTokenRequest:
-      type: object
-      required: [refresh_token]
-      properties:
-        refresh_token:
-          type: string
-
-    AuthResponse:
-      type: object
-      required: [access_token, refresh_token, token_type]
-      properties:
-        access_token:
-          type: string
-        refresh_token:
-          type: string
-        token_type:
-          type: string
-          enum: [Bearer]
 
     ProductCreate:
       type: object

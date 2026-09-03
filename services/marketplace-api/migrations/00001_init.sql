@@ -2,25 +2,10 @@
 CREATE TYPE product_status AS ENUM ('ACTIVE', 'INACTIVE', 'ARCHIVED');
 CREATE TYPE order_status AS ENUM ('CREATED', 'PAYMENT_PENDING', 'PAID', 'SHIPPED', 'COMPLETED', 'CANCELED');
 CREATE TYPE discount_type AS ENUM ('PERCENTAGE', 'FIXED_AMOUNT');
-CREATE TYPE user_role AS ENUM ('USER', 'SELLER', 'ADMIN');
 CREATE TYPE operation_type AS ENUM ('CREATE_ORDER', 'UPDATE_ORDER');
 
-CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    role user_role NOT NULL DEFAULT 'USER',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE TABLE refresh_tokens (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    token_hash VARCHAR(255) NOT NULL UNIQUE,
-    expires_at TIMESTAMPTZ NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
+-- Users / refresh_tokens живут в user-service (БД user_service).
+-- В marketplace эти таблицы не нужны; seller_id и user_id хранятся как UUID без FK.
 
 CREATE TABLE products (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -30,7 +15,7 @@ CREATE TABLE products (
     stock INTEGER NOT NULL DEFAULT 0,
     category VARCHAR(100) NOT NULL,
     status product_status NOT NULL DEFAULT 'ACTIVE',
-    seller_id UUID NOT NULL REFERENCES users(id),
+    seller_id UUID NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -50,7 +35,7 @@ CREATE TABLE promo_codes (
 
 CREATE TABLE orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id),
+    user_id UUID NOT NULL,
     status order_status NOT NULL DEFAULT 'CREATED',
     promo_code_id UUID REFERENCES promo_codes(id),
     total_amount DECIMAL(12,2) NOT NULL,
@@ -69,11 +54,11 @@ CREATE TABLE order_items (
 
 CREATE TABLE user_operations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id),
+    user_id UUID NOT NULL,
     operation_type operation_type NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- +goose Down
-DROP TABLE IF EXISTS user_operations, order_items, orders, promo_codes, products, refresh_tokens, users;
-DROP TYPE IF EXISTS operation_type, user_role, discount_type, order_status, product_status;
+DROP TABLE IF EXISTS user_operations, order_items, orders, promo_codes, products;
+DROP TYPE IF EXISTS operation_type, discount_type, order_status, product_status;
